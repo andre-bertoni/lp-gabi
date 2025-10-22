@@ -1,0 +1,53 @@
+/* ===== Reset CSS ===== */
+
+/* Remove espaçamentos e bordas padrões */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Tipografia básica */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #222;
+  background-color: #fff;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Remove estilos padrões de listas e links */
+ul, ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Remove bordas padrão de botões e inputs */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+/* Imagens e vídeos responsivos */
+img,
+video {
+  max-width: 100%;
+  display: block;
+  height: auto;
+}
+
+
