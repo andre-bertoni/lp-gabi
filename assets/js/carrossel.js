@@ -2,10 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const container = document.querySelector(".carrossel-depoiments");
   if (!container) return;
 
-  const visibleCount = 3;       // visíveis por padrão (desktop)
-  const gap = 16;               // gap do SCSS
-  const autoplayDelay = 3000;   // ms
-  const transitionDuration = 600; // ms
+  const visibleCount = 3;
+  const gap = 16;
+  const autoplayDelay = 3000;
+  const transitionDuration = 600;
 
   if (container.dataset.initialized === "true") return;
   container.dataset.initialized = "true";
@@ -20,14 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
     container.appendChild(track);
   }
 
-  // remove clones antigos
   Array.from(track.querySelectorAll("[data-clone='true']")).forEach(n => n.remove());
 
   let realCards = Array.from(track.querySelectorAll(".carrossel-card"));
   const realCount = realCards.length;
   if (realCount === 0) return;
 
-  // --- CLONES PARA LOOP ---
   const clonesNeeded = visibleCount;
   if (realCount > visibleCount) {
     const lastClones = realCards.slice(-clonesNeeded).map(c => {
@@ -66,14 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let isTransitioning = false;
   let autoplayTimer = null;
 
-  // calcula largura do card + gap dinamicamente
+  // --- Cálculo de largura dinâmica ---
   const computeStep = () => {
-  const card = track.querySelector(".carrossel-card");
-  return card ? card.getBoundingClientRect().width + gap : 0;
-};
+    const card = track.querySelector(".carrossel-card");
+    return card ? card.getBoundingClientRect().width + gap : 0;
+  };
   let step = computeStep();
 
-  // inicializa track no início dos cards reais
   const initialOffset = realCards.length > realCount ? visibleCount * step : 0;
   track.style.transform = `translateX(-${initialOffset}px)`;
 
@@ -92,12 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
       track.removeEventListener("transitionend", onEnd);
       isTransitioning = false;
 
-      // --- AJUSTE DE LOOP ---
       if (currentIndex >= realCount) {
         currentIndex = 0;
         track.style.transition = "none";
         track.style.transform = `translateX(-${initialOffset}px)`;
-        void track.offsetHeight; // força reflow
+        void track.offsetHeight;
         track.style.transition = `transform ${transitionDuration}ms ease`;
       } else if (currentIndex < 0) {
         currentIndex = realCount - 1;
@@ -139,18 +135,53 @@ document.addEventListener("DOMContentLoaded", () => {
   leftArrow?.addEventListener("click", () => { prev(); resetAutoplay(); });
   rightArrow?.addEventListener("click", () => { next(); resetAutoplay(); });
 
-  const startAutoplay = () => { stopAutoplay(); autoplayTimer = setInterval(next, autoplayDelay); };
-  const stopAutoplay = () => { if (autoplayTimer) clearInterval(autoplayTimer); autoplayTimer = null; };
-  const resetAutoplay = () => { stopAutoplay(); startAutoplay(); };
+  // --- AUTOPLAY ---
+  const startAutoplay = () => {
+    stopAutoplay();
+    autoplayTimer = setInterval(next, autoplayDelay);
+  };
+  const stopAutoplay = () => {
+    if (autoplayTimer) clearInterval(autoplayTimer);
+    autoplayTimer = null;
+  };
+  const resetAutoplay = () => {
+    stopAutoplay();
+    startAutoplay();
+  };
 
   const topContainer = document.querySelector(".carrossel");
+
+  // --- PAUSA HOVER (DESKTOP) ---
   topContainer?.addEventListener("mouseenter", stopAutoplay);
   topContainer?.addEventListener("mouseleave", startAutoplay);
 
-  updateDots();
-  startAutoplay();
+  // --- SWIPE (MOBILE) ---
+  let touchStartX = 0;
+  let touchEndX = 0;
 
-  // recalcula passo e reposiciona se janela redimensionar
+  topContainer?.addEventListener("touchstart", (e) => {
+    stopAutoplay();
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  topContainer?.addEventListener("touchmove", (e) => {
+    touchEndX = e.touches[0].clientX;
+  }, { passive: true });
+
+  topContainer?.addEventListener("touchend", () => {
+    const swipeDistance = touchEndX - touchStartX;
+    if (Math.abs(swipeDistance) > 50) {
+      if (swipeDistance < 0) next();
+      else prev();
+    }
+    resetAutoplay();
+  });
+
+  // --- Inicializa autoplay imediatamente ---
+  updateDots();
+  startAutoplay(); // 🚀 garante que o autoplay inicie sempre
+
+  // --- Recalcula ao redimensionar ---
   window.addEventListener("resize", () => {
     step = computeStep();
     const offset = initialOffset + currentIndex * step;
